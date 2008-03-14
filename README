@@ -1,0 +1,109 @@
+NAME
+    WWW::Spinn3r - An interface to the Spinn3r REST API.
+
+SYNOPSIS
+     use WWW::Spinn3r;
+     use DateTime;
+
+     my $API = { 
+        vendor          => 'acme',   # required
+        version         => '2.1.2', 
+        limit           => 5, 
+        lang            => 'en',
+        publisher_type  => 'WEBLOG',
+        tier            => '0:5', 
+        after           => DateTime->now()->subtract(hours => 48),
+     };
+
+     my $spnr = new WWW::Spinn3r ( 
+        api => 'permalink.getDelta', params => $API, debug => 1);
+     );
+
+     while(1) { 
+         my $item = $spnr->next;
+         print $item->{title};
+         print $item->{link};
+         print $item->{content_extract};
+     }
+
+DESCRIPTION
+    WWW::Spinn3r is an iterative interface to the Spinn3r API. The Spinn3r
+    API is implemented over REST and XML and documented throughly at
+    `http://spinn3r.com/documentation'. This document makes many references
+    to the online doc and the reader is advised to study Spinn3r
+    documentation before proceeding further.
+
+OBTAINING A VENDOR KEY
+    Spinn3r service is available through a `vendor' key, which you can get
+    from the good folks at Tailrank[http://spinn3r.com/contact].
+
+HOW TO USE
+    This module gives your a perl hash interface to the API. You'll need
+    just two functions from this module: `new()' and `next()'. `new()'
+    creates a new instance of the API and `next()' returns the next item
+    from the Spinn3r feed. Details are below.
+
+new()
+    The contructor. This function is used to create an API request and
+    supports the following parameters:
+
+    api `permalink.getDelta' or `feed.getDelta' or another API supported by
+        Spinn3r.
+
+    params
+        These are parameters that are passed to the API call. See
+        `http://spinn3r.com/documentation' for a list of available
+        parameters and their values.
+
+    debug
+        Emits debug noise on STDOUT if set to 1.
+
+    retries
+        The number of HTTP retries in case of a 5xx failure from the API.
+        The default is 5.
+
+next()
+    This method returns the next item from the Spinn3r feed. The item is a
+    reference to a hash, which contains an RSS item as decoded by XML::RSS.
+
+    The module transparently fetches a new set of results from Spinn3r,
+    using the `api:next_request_url' returned by Spinn3r with every request,
+    and caches the result to implement `next()'.
+
+    You can control the number of results that are fetched with every call
+    by changing the `limit' parameter at `new()'.
+
+next_feed()
+    This method returns the raw XML returned by the next API call. This
+    SHOULD NOT be mixed with next() - either use next() and have
+    WWW::Spinn3r manage the iteration, or use next_feed() and manage the
+    iteration yourself. Note that next_feed() does not set the next_url(),
+    which has to be set explicitely, by you, after the first call.
+
+next_url()
+    The next API URL that WWW::Spinn3r will fetch. This is set to the
+    `api:next_request_url' value returned by Spinn3r in the next() method.
+    This is a read/write accessor method, so you can manually set the
+    next_url() should you want to, for instance if you are using the
+    next_feed() interface.
+
+last_url()
+    The last API URL that was fetched.
+
+DATE STRING FORMAT
+    Spinn3r support ISO 8601 timestamps in the `after' parameter. To create
+    ISO 8601 timestamps, use the DateTime module as illustrated in the
+    SYNOPSIS.
+
+REPORTING BUGS
+    Bugs should be reported at `http://rt.cpan.org'
+
+TODO
+    Implement deflate compression.
+    Implement saving to a file and expose next_feed()
+AUTHOR
+        Vipul Ved Prakash <vipul@slaant.com>
+
+LICENSE
+        This software is distributed under the same terms as perl itself.
+
