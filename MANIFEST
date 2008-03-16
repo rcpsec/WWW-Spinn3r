@@ -1,0 +1,8 @@
+lib/WWW/Spinn3r.pm
+t/01-compile.t
+Makefile.PL
+README
+INSTALL
+LICENSE
+MANIFEST
+META.yml                                 Module meta-data (added by MakeMaker)

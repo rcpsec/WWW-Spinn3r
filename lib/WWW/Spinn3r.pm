@@ -8,7 +8,7 @@ use Carp;
 
 __PACKAGE__->mk_accessors(qw( api api_url next_url retries retry_sleep last_url this_cursor this_feed version ));
 
-$WWW::Spinn3r::VERSION = '2.00100303';
+$WWW::Spinn3r::VERSION = '2.00100304';
 
 our $DEFAULTS = { 
     api_url => 'http://api.spinn3r.com/rss',
@@ -273,9 +273,9 @@ The last API URL that was fetched.
 
 =head1 DATE STRING FORMAT
 
-Spinn3r support ISO 8601 timestamps in the C<after> parameter. To 
-create ISO 8601 timestamps, use the DateTime module that returns 
-ISO 8601 date strings by default. eg:
+Spinn3r supports ISO 8601 timestamps in the C<after> parameter. To
+create ISO 8601 timestamps, use the DateTime module that returns ISO
+8601 date strings by default. eg:
 
  after => DateTime->now()->subtract(hours => 48),
  after => DateTime->now()->subtract(days => 31),
@@ -290,7 +290,7 @@ Bugs should be reported at C<http://rt.cpan.org>
 
 =item Implement deflate compression. 
 
-=item Implement saving to a file and expose next_feed()
+=item Implement saving the XML to a file.
 
 =head1 AUTHOR
 
