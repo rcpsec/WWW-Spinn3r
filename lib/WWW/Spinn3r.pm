@@ -8,7 +8,7 @@ use Carp;
 
 __PACKAGE__->mk_accessors(qw( api api_url next_url retries retry_sleep last_url this_cursor this_feed version ));
 
-$WWW::Spinn3r::VERSION = '2.00100302';
+$WWW::Spinn3r::VERSION = '2.00100303';
 
 our $DEFAULTS = { 
     api_url => 'http://api.spinn3r.com/rss',
