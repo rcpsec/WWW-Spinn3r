@@ -1,36 +1,53 @@
 package WWW::Spinn3r;
-
 use base Class::Accessor;
+use base WWW::Spinn3r::Common;
 use LWP::UserAgent; 
-use XML::RSS;
 use Data::Dumper;
 use Carp;
+use WWW::Spinn3r::next_request_url;
+use WWW::Spinn3r::item;
+use WWW::Spinn3r::link;
+use File::Spec;
 
-__PACKAGE__->mk_accessors(qw( api api_url next_url retries retry_sleep last_url this_cursor this_feed version ));
+__PACKAGE__->mk_accessors(qw( api api_url from_file next_url retries retry_sleep last_url path this_cursor this_feed version want));
 
-$WWW::Spinn3r::VERSION = '2.00100304';
+$WWW::Spinn3r::VERSION = '2.00200001';
 
 our $DEFAULTS = { 
-    api_url => 'http://api.spinn3r.com/rss',
-    debug   => 0,
-    retries => 5,
+    api_url     => 'http://api.spinn3r.com/rss',
+    debug       => 0,
+    retries     => 5,
     retry_sleep => 30,
-    version => '2.1.3',
+    version     => '2.2.0',
+    want        => 'item',
 };
 
-    
+
 sub new { 
 
     my ($class, %args) = @_;
 
-    croak "Need vendor key" unless $args{params}->{vendor};
-    croak "Need api name" unless $args{api};
-
     my $self = bless { %$DEFAULTS, %args }, $class;
 
+    if ($args{from_file}) { 
+        # check for file's existance
+        return $self;
+    }
+
+    croak "Need vendor key" unless $args{params}->{vendor};
+    croak "Need api name" unless $args{api};
     $self->{ua} = new LWP::UserAgent (timeout => 30);
 
     return $self;
+
+}
+
+
+sub mirror { 
+
+    my ($class, %args) = @_;
+    croak "no mirror path provided" unless $args{path};
+    return $class->new(%args, mirror => 1);
 
 }
 
@@ -49,26 +66,37 @@ sub first_url {
     for my $param (keys %{ $self->{params} }) {
         $url .= '&' . $param . '=' . $self->{params}->{$param};
     }
+
     return $url;
 
 }
 
 
-sub http_get { 
+sub _next_feed_from_http { 
 
-    my ($self, $url) = @_;
-    # fetch from Spinn3r
+    my ($self, $url, %args) = @_;
 
     my $tries = 0;
-    my $done = 0;
     my $content = '';
 
+    
     while ($tries < $self->retries and not $content) { 
     
         $tries++;
 
-        $self->debug("fetching: $url");
-        my $response = $self->{ua}->get($url);
+        my ($response, $content_file, $length);
+
+        my $start = $self->start_timer();
+        if ($$self{mirror}) { 
+            $content_file = $self->local_file($$self{path}, $url); 
+            $self->debug("fetching (to file $content_file) $url");
+            $response = $self->{ua}->get($url, ':content_file' => $content_file, 'Accept-Encoding' => 'gzip; deflate');
+        } else { 
+            $self->debug("fetching (to memory) $url");
+            $response = $self->{ua}->get($url, 'Accept-Encoding' => 'gzip; compress; deflate');
+        }
+        
+        my $howlong = $self->howlong($start);
 
         unless ($response->is_success) { 
             $self->debug($response->status_line);
@@ -78,8 +106,13 @@ sub http_get {
             $self->debug("sleeping for " . $self->retry_sleep . " seconds...");
             sleep($self->retry_sleep);
         } else { 
-            $content = $response->content;
-            $self->debug("fetched on try $tries - length " . length($content));
+            $length = $$self{mirror} ? -s $content_file : length($response->content);
+            $self->debug("success! $length bytes, in $howlong seconds");
+            if ($$self{mirror}) { 
+                $content = $content_file;
+            } else { 
+                $content = $response->content;
+            }
         }
         
     }
@@ -88,49 +121,86 @@ sub http_get {
         croak "Unable to fetch from spinn3r: $url";
     }
 
-    return $content;
+    if ($$self{mirror}) { 
+        return $content;
+    } else { 
+        return \$content;
+    }
 
 }
+
+
+sub local_file { 
+
+    my ($self, $path, $url) = @_;
+    
+    my $urlpath = URI->new($url)->path;
+    $urlpath =~ s|^/rss/||;
+
+    my $filename .= ' ' . URI->new($url)->query;
+    $filename =~ s"\W"-"sg;
+    $filename = $urlpath . '-' . $filename . '.xml';
+
+    my $fullpath = File::Spec->catfile($path, $filename);
+    $self->debug("mirror filename: $fullpath");
+    return $fullpath;
+
+}
+
 
 sub next_feed {
 
     my ($self) = @_;
-    my $url = $self->next_url || $self->first_url;
 
-    my $xml = $self->http_get($url);
-    $self->last_url($url);
-    return $xml;
+    if ($self->{ua}) { 
+
+        my $url = $self->next_url || $self->first_url;
+
+        if ($url eq $self->last_url or $url =~ /after=$/) { 
+            $self->debug("it's the future! will wait for present to catch up. sleeping " . $self->retry_sleep . " seconds");
+            sleep($self->retry_sleep);
+            return $self->next_feed();
+        }
+
+        my $xml = $self->_next_feed_from_http($url, %args);
+
+        $self->last_url($url);
+        if ($self->want eq 'item') { 
+            $self->this_feed(WWW::Spinn3r::item->new(stringref => $xml, debug => $self->{debug}));
+        } elsif ($self->want eq 'link') { 
+            $self->this_feed(WWW::Spinn3r::link->new(stringref => $xml, debug => $self->{debug}));
+        }
+
+    } elsif ($self->{from_file}) { 
+        my $content_file = File::Spec->catfile($self->from_file);
+        if ($self->want eq 'item') { 
+            $self->this_feed(WWW::Spinn3r::item->new(path => $content_file, debug => $self->{debug}));
+        } elsif ($self->want eq 'link') { 
+            $self->this_feed(WWW::Spinn3r::link->new(path => $content_file, debug => $self->{debug}));
+        }
+    }
 
 }
- 
- 
+
+
 sub next { 
 
     my ($self) = @_;
-  
+
     unless ($self->this_feed) { 
 
-        my $xml = $self->next_feed();
-
-        # parse the response
-        $self->debug("parsing: " . $self->last_url);
-        my $parser = new XML::RSS;
-        $parser->parse($xml);
-        $self->debug("done parsing: " . $self->last_url);
-
-        # set the object with the current feed, cursor, next_url
-        $self->this_feed($parser);
+        $self->next_feed();
         $self->this_cursor(0);
-        $self->next_url($self->this_feed->{channel}->{'http://tailrank.com/ns/#api'}->{next_request_url});
-
+        $self->next_url($self->this_feed->{'api:next_request_url'});
         return $self->next();
 
     }
 
-    my $item = $self->this_feed->{items}->[$self->this_cursor];
+    my $item = $self->this_feed->{$self->want}->[$self->this_cursor];
 
     unless ($item) { 
         $self->this_feed(undef);
+        return undef if $self->from_file;
         return $self->next();
     }
 
@@ -140,14 +210,24 @@ sub next {
 }
 
 
-sub debug { 
+sub next_mirror { 
 
-    my ($self, $msg) = @_;
-    print "debug: (WWW::Spinn3r) $msg\n" if $self->{debug};
+    my ($self, %args) = @_;
+
+    unless ($self->{mirror}) {
+        warn ("next_mirror called in non-mirror mode");
+        return;
+    }
+    my $url = $self->next_url || $self->first_url;
+
+    my $filename = $self->_next_feed_from_http($url);
+    $self->last_url($url);
+    my $next_url = new WWW::Spinn3r::next_request_url(path => $filename, debug => $self->{debug});
+    $self->next_url($next_url->{'api:next_request_url'});
 
 }
 
-
+ 
 1;
 
 
@@ -195,21 +275,19 @@ get from the good folks at Tailrank, C<http://spinn3r.com/contact>.
 
 Most commonly, you'll need just two functions from this module: C<new()>
 and C<next()>. C<new()> creates a new instance of the API and C<next()>
-returns the next item from the Spinn3r feed, as a reference to a hash.
-Details are below.
+returns the next item from the Spinn3r feed, as hashref. Details
+are below.
 
 =head1 B<new()>
 
-The contructor. This function takes
-
-supports the following parameters:
+The contructor. This function takes a hash with the following keys:
 
 =over 4
 
 =item B<api>
 
-C<permalink.getDelta> or C<feed.getDelta> or another API supported 
-by Spinn3r.
+C<permalink.getDelta> or C<feed.getDelta>, one of the two APIs provided 
+by Spinn3r. 
 
 =item B<params>
 
@@ -218,14 +296,29 @@ C<http://spinn3r.com/documentation> for a list of available parameters
 and their values.
 
 The B<version> parameter to the API is a function of version of this
-module. For instance Spinn3r API version 2.1.3 corresponds to version
-2.001003xx. The B<version> accessor method returns the version of the 
-API.
+module. and the B<version()> accessor method returns the version
+of the API. By default, the version will be set to the version 
+that corresponds to this module.
 
 If the version of the spinn3r API has changed, you can specify it 
-as a parameter.  While the module is not guranteed to work with 
-higher versions of the Spinn3r API it is designed for, it might if the
+as a parameter. While the module is not guranteed to work with higher
+versions of the Spinn3r API than it is designed for, it might if the
 underlying formats and encodings have not changed.
+
+=item B<want>
+
+This parameter defines the type of item returned by the next() call.
+WWW::Spinn3r uses XML::Twig to parse the XML returned by Spinn3r and
+comes with three Twig parsers, C<WWW::Spinn3r::item>,
+C<WWW::Spinn3r::link> and C<WWW::Spinn3r::next_request_url>. The default
+value for C<want> is C<item>, which corresponds to the
+C<WWW::Spinn3r::item> module and returns all fields for an item included
+in the Spinn3r feed.
+
+The motivation for having multiple parsers is speed. If you only want
+certain fields from the feed, for example the link and title, it is
+significantly faster to write a parser that just extracts those two
+fields from the feed with XML::Twig.
 
 =item B<debug>
 
@@ -241,35 +334,42 @@ The default is 5.
 =head1 B<next()>
 
 This method returns the next item from the Spinn3r feed. The item is a
-reference to a hash, which contains an RSS item as decoded by
-XML::RSS.
+reference to a hash, which contains the various fields of an item
+as parsed by the parser specified in the C<want> field of the
+consutructor (C<item> by default).
 
-The module transparently fetches a new set of results from
-Spinn3r, using the C<api:next_request_url> returned by Spinn3r
-with every request, and caches the result to implement C<next()>.
+The module transparently fetches a new set of results from Spinn3r,
+using the C<api:next_request_url> returned by Spinn3r with every
+request, and caches the result to implement C<next()>.
 
-You can control the number of results that are fetched with 
-every call by changing the C<limit> parameter at C<new()>.
-
-=head1 B<next_feed()>
-
-This method returns the raw XML returned by the next API call. This
-SHOULD NOT be mixed with next() - either use next() and have
-WWW::Spinn3r manage the iteration, or use next_feed() and manage the
-iteration yourself. Note that next_feed() does not set the next_url(),
-which has to be set explicitely, by you, after the first call.
-
-=head1 B<next_url()>
-
-The next API URL that WWW::Spinn3r will fetch. This is set to the
-C<api:next_request_url> value returned by Spinn3r in the next() method.
-This is a read/write accessor method, so you can manually set the
-next_url() should you want to, for instance if you are using the 
-next_feed() interface.
+You can control the number of results that are fetched with every call
+by changing the C<limit> parameter at C<new()>.
 
 =head1 B<last_url()>
 
 The last API URL that was fetched.
+
+=head1 B<mirror()>
+
+WWW::Spinn3r supports mirroring of the Spinn3r feed to local files
+and then recreating WWW:Spinn3r objects from these files. This
+is useful if you want to distribute processing of the feeds 
+over multiple processes or computers.
+
+To mirror feeds to disk, use the alternative constructor B<mirror>,
+which takes all the same arguments as B<new> plus the 
+C<path> argument, which specifies where the files should saved.
+
+    my $m = mirror WWW::Spinn3r ( path => $mirror_dir, ... )
+    $m->next_mirror();
+
+The iteration is done with B<next_mirror()> method, which stores the
+next feed to a new file, whose filename is derived from the API url.
+
+WWW::Spinn3r objects can be created from these disk files when 
+new() is called with the C<from_file> key: 
+
+    my $m = new WWW::Spinn3r ( from_file => ... );
 
 =head1 DATE STRING FORMAT
 
@@ -284,13 +384,9 @@ create ISO 8601 timestamps, use the DateTime module that returns ISO
 
 Bugs should be reported at C<http://rt.cpan.org>
 
-=head1 TODO 
+=head1 SEE ALSO
 
-=over 4
-
-=item Implement deflate compression. 
-
-=item Implement saving the XML to a file.
+WWW::Spinn3r::Synced
 
 =head1 AUTHOR
 

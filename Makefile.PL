@@ -1,15 +1,18 @@
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    AUTHOR       => 'Vipul Ved Prakash <opensource@slaant.com>',
-    NAME	     => 'WWW::Spinn3r',
-    VERSION_FROM => 'lib/WWW/Spinn3r.pm',
-    ABSTRACT_FROM => 'lib/WWW/Spinn3r.pm',
-    PREREQ_PM    => { 
-        'XML::RSS'          => 0,
-        'DateTime'          => 0,
-        'Class::Accessor'   =>0,
-        'LWP::UserAgent'    =>
-    },
-    dist         => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-);
+# Define metadata
+name            'WWW-Spinn3r',
+all_from        'lib/WWW/Spinn3r.pm';
+        
+# Specific dependencies
+requires        'XML::Twig';
+requires        'DateTime';
+requires        'Class::Accessor'; 
+requires        'LWP::UserAgent';
+requires        'Time::HiRes';
+
+license         'perl';
+        
+auto_install;
+WriteAll;
+
