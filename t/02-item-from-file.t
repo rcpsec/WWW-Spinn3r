@@ -1,12 +1,12 @@
 use lib qw(lib ../lib);
 use Data::Dumper;
 use Test::More;
-use Findbin qw($Bin);
+use FindBin qw($Bin);
 use WWW::Spinn3r; 
 use Test::Memory::Cycle;
 
 BEGIN { plan tests => 17 }
-my $FROM_FILE = "t/02.xml";
+my $FROM_FILE = "$Bin/02.xml";
 my $spinn3r = new WWW::Spinn3r( from_file => $FROM_FILE );
 ok(ref $spinn3r, "parsing document... can take a few seconds");
 my $first_item = $spinn3r->next();

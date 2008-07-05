@@ -11,12 +11,12 @@ use File::Spec;
 
 __PACKAGE__->mk_accessors(qw( api api_url from_file next_url retries retry_sleep last_url path this_cursor this_feed version want));
 
-$WWW::Spinn3r::VERSION = '2.00200001';
+$WWW::Spinn3r::VERSION = '2.00200002';
 
 our $DEFAULTS = { 
     api_url     => 'http://api.spinn3r.com/rss',
     debug       => 0,
-    retries     => 5,
+    retries     => 60 * 60 * 24 * 10,
     retry_sleep => 30,
     version     => '2.2.0',
     want        => 'item',

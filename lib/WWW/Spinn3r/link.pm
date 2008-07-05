@@ -38,12 +38,20 @@ sub new {
     my $start = $self->start_timer;
     $self->debug("$class: parsing XML...");
 
+    eval { 
+
     if ($args{path}) { 
         $twig->parsefile($args{path});
     } elsif ($args{string}) { 
         $twig->parse($args{string});
     } elsif ($args{stringref}) { 
         $twig->parse(${$args{stringref}});
+    }
+
+    }; 
+
+    if ($@) { 
+        return; 
     }
 
     my $howlong = $self->howlong($start);

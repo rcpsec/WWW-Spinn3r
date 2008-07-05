@@ -1,7 +1,7 @@
 # This Makefile is for the WWW::Spinn3r extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 6.44 (Revision: 54639) from the contents of
+# 6.42 (Revision: 41145) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
@@ -10,14 +10,15 @@
 #
 #   MakeMaker Parameters:
 
+#     ABSTRACT => q[An interface to the Spinn3r API (http://www.spinn3r.com)]
 #     AUTHOR => q[Vipul Ved Prakash <vipul@slaant.com>]
 #     DIR => []
 #     DISTNAME => q[WWW-Spinn3r]
 #     NAME => q[WWW::Spinn3r]
 #     NO_META => q[1]
 #     PL_FILES => {  }
-#     PREREQ_PM => { DateTime=>q[0], LWP::UserAgent=>q[0], XML::Twig=>q[0], Class::Accessor=>q[0], Time::HiRes=>q[0] }
-#     VERSION => q[2.00200001]
+#     PREREQ_PM => { DateTime=>q[0], LWP::UserAgent=>q[0], XML::Twig=>q[0], ExtUtils::MakeMaker=>q[6.42], Class::Accessor=>q[0], Test::Memory::Cycle=>q[0], Time::HiRes=>q[0] }
+#     VERSION => q[2.00200002]
 #     dist => { PREOP=>q[$(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"] }
 #     test => { TESTS=>q[t/01-compile.t t/02-item-from-file.t] }
 
@@ -26,8 +27,9 @@
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /System/Library/Perl/5.8.8/darwin-thread-multi-2level/Config.pm).
-# They may have been overridden via Makefile.PL or on the command line.
+# These definitions are from config.sh (via /opt/perl.5.10.0/lib/5.10.0/darwin-2level/Config.pm)
+
+# They may have been overridden via Makefile.PL or on the command line
 AR = ar
 CC = cc
 CCCDLFLAGS =  
@@ -36,20 +38,20 @@ DLEXT = bundle
 DLSRC = dl_dlopen.xs
 EXE_EXT = 
 FULL_AR = /usr/bin/ar
-LD = cc -mmacosx-version-min=10.5
-LDDLFLAGS = -arch i386 -arch ppc -bundle -undefined dynamic_lookup -L/usr/local/lib
-LDFLAGS = -arch i386 -arch ppc -L/usr/local/lib
+LD = env MACOSX_DEPLOYMENT_TARGET=10.3 cc
+LDDLFLAGS =  -bundle -undefined dynamic_lookup -L/usr/local/lib -L/opt/local/lib
+LDFLAGS =  -L/usr/local/lib -L/opt/local/lib
 LIBC = /usr/lib/libc.dylib
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = darwin
-OSVERS = 9.0
-RANLIB = /usr/bin/ar ts
-SITELIBEXP = /Library/Perl/5.8.8
-SITEARCHEXP = /Library/Perl/5.8.8/darwin-thread-multi-2level
+OSVERS = 9.3.0
+RANLIB = ranlib
+SITELIBEXP = /opt/perl.5.10.0/lib/site_perl/5.10.0
+SITEARCHEXP = /opt/perl.5.10.0/lib/site_perl/5.10.0/darwin-2level
 SO = dylib
-VENDORARCHEXP = /Network/Library/Perl/5.8.8/darwin-thread-multi-2level
-VENDORLIBEXP = /Network/Library/Perl/5.8.8
+VENDORARCHEXP = 
+VENDORLIBEXP = 
 
 
 # --- MakeMaker constants section:
@@ -58,11 +60,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = WWW::Spinn3r
 NAME_SYM = WWW_Spinn3r
-VERSION = 2.00200001
+VERSION = 2.00200002
 VERSION_MACRO = VERSION
-VERSION_SYM = 2_00200001
+VERSION_SYM = 2_00200002
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 2.00200001
+XS_VERSION = 2.00200002
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -72,57 +74,57 @@ INST_LIB = blib/lib
 INST_MAN1DIR = blib/man1
 INST_MAN3DIR = blib/man3
 MAN1EXT = 1
-MAN3EXT = 3pm
+MAN3EXT = 3
 INSTALLDIRS = site
 DESTDIR = 
 PREFIX = $(SITEPREFIX)
-PERLPREFIX = /
-SITEPREFIX = /usr/local
-VENDORPREFIX = /usr/local
-INSTALLPRIVLIB = /System/Library/Perl/5.8.8
+PERLPREFIX = /opt/perl.5.10.0
+SITEPREFIX = /opt/perl.5.10.0
+VENDORPREFIX = 
+INSTALLPRIVLIB = /opt/perl.5.10.0/lib/5.10.0
 DESTINSTALLPRIVLIB = $(DESTDIR)$(INSTALLPRIVLIB)
-INSTALLSITELIB = /Library/Perl/5.8.8
+INSTALLSITELIB = /opt/perl.5.10.0/lib/site_perl/5.10.0
 DESTINSTALLSITELIB = $(DESTDIR)$(INSTALLSITELIB)
-INSTALLVENDORLIB = /Network/Library/Perl/5.8.8
+INSTALLVENDORLIB = 
 DESTINSTALLVENDORLIB = $(DESTDIR)$(INSTALLVENDORLIB)
-INSTALLARCHLIB = /System/Library/Perl/5.8.8/darwin-thread-multi-2level
+INSTALLARCHLIB = /opt/perl.5.10.0/lib/5.10.0/darwin-2level
 DESTINSTALLARCHLIB = $(DESTDIR)$(INSTALLARCHLIB)
-INSTALLSITEARCH = /Library/Perl/5.8.8/darwin-thread-multi-2level
+INSTALLSITEARCH = /opt/perl.5.10.0/lib/site_perl/5.10.0/darwin-2level
 DESTINSTALLSITEARCH = $(DESTDIR)$(INSTALLSITEARCH)
-INSTALLVENDORARCH = /Network/Library/Perl/5.8.8/darwin-thread-multi-2level
+INSTALLVENDORARCH = 
 DESTINSTALLVENDORARCH = $(DESTDIR)$(INSTALLVENDORARCH)
-INSTALLBIN = /usr/bin
+INSTALLBIN = /opt/perl.5.10.0/bin
 DESTINSTALLBIN = $(DESTDIR)$(INSTALLBIN)
-INSTALLSITEBIN = /usr/local/bin
+INSTALLSITEBIN = /opt/perl.5.10.0/bin
 DESTINSTALLSITEBIN = $(DESTDIR)$(INSTALLSITEBIN)
-INSTALLVENDORBIN = /usr/local/bin
+INSTALLVENDORBIN = 
 DESTINSTALLVENDORBIN = $(DESTDIR)$(INSTALLVENDORBIN)
-INSTALLSCRIPT = /usr/bin
+INSTALLSCRIPT = /opt/perl.5.10.0/bin
 DESTINSTALLSCRIPT = $(DESTDIR)$(INSTALLSCRIPT)
-INSTALLSITESCRIPT = /usr/local/bin
+INSTALLSITESCRIPT = /opt/perl.5.10.0/bin
 DESTINSTALLSITESCRIPT = $(DESTDIR)$(INSTALLSITESCRIPT)
-INSTALLVENDORSCRIPT = /usr/local/bin
+INSTALLVENDORSCRIPT = 
 DESTINSTALLVENDORSCRIPT = $(DESTDIR)$(INSTALLVENDORSCRIPT)
-INSTALLMAN1DIR = /usr/share/man/man1
+INSTALLMAN1DIR = /opt/perl.5.10.0/man/man1
 DESTINSTALLMAN1DIR = $(DESTDIR)$(INSTALLMAN1DIR)
-INSTALLSITEMAN1DIR = /usr/local/share/man/man1
+INSTALLSITEMAN1DIR = /opt/perl.5.10.0/man/man1
 DESTINSTALLSITEMAN1DIR = $(DESTDIR)$(INSTALLSITEMAN1DIR)
-INSTALLVENDORMAN1DIR = /usr/local/share/man/man1
+INSTALLVENDORMAN1DIR = 
 DESTINSTALLVENDORMAN1DIR = $(DESTDIR)$(INSTALLVENDORMAN1DIR)
-INSTALLMAN3DIR = /usr/share/man/man3
+INSTALLMAN3DIR = /opt/perl.5.10.0/man/man3
 DESTINSTALLMAN3DIR = $(DESTDIR)$(INSTALLMAN3DIR)
-INSTALLSITEMAN3DIR = /usr/local/share/man/man3
+INSTALLSITEMAN3DIR = /opt/perl.5.10.0/man/man3
 DESTINSTALLSITEMAN3DIR = $(DESTDIR)$(INSTALLSITEMAN3DIR)
-INSTALLVENDORMAN3DIR = /usr/local/share/man/man3
+INSTALLVENDORMAN3DIR = 
 DESTINSTALLVENDORMAN3DIR = $(DESTDIR)$(INSTALLVENDORMAN3DIR)
 PERL_LIB =
-PERL_ARCHLIB = /System/Library/Perl/5.8.8/darwin-thread-multi-2level
+PERL_ARCHLIB = /opt/perl.5.10.0/lib/5.10.0/darwin-2level
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKEFILE_OLD = Makefile.old
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /System/Library/Perl/5.8.8/darwin-thread-multi-2level/CORE
+PERL_INC = /opt/perl.5.10.0/lib/5.10.0/darwin-2level/CORE
 PERL = /usr/bin/perl "-Iinc"
 FULLPERL = /usr/bin/perl "-Iinc"
 ABSPERL = $(PERL)
@@ -136,9 +138,9 @@ PERL_CORE = 0
 PERM_RW = 644
 PERM_RWX = 755
 
-MAKEMAKER   = /System/Library/Perl/5.8.8/ExtUtils/MakeMaker.pm
-MM_VERSION  = 6.44
-MM_REVISION = 54639
+MAKEMAKER   = /opt/perl.5.10.0/lib/5.10.0/ExtUtils/MakeMaker.pm
+MM_VERSION  = 6.42
+MM_REVISION = 41145
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
@@ -206,7 +208,7 @@ PM_TO_BLIB = lib/WWW/Spinn3r/item.pm \
 
 
 # --- MakeMaker platform_constants section:
-MM_Unix_VERSION = 6.44
+MM_Unix_VERSION = 6.42
 PERL_MALLOC_DEF = -DPERL_EXTMALLOC_DEF -Dmalloc=Perl_malloc -Dfree=Perl_mfree -Drealloc=Perl_realloc -Dcalloc=Perl_calloc
 
 
@@ -254,7 +256,7 @@ makemakerdflt : all
 
 
 # --- MakeMaker dist section:
-TAR = COPY_EXTENDED_ATTRIBUTES_DISABLE=1 COPYFILE_DISABLE=1 tar
+TAR = tar
 TARFLAGS = cvf
 ZIP = zip
 ZIPFLAGS = -r
@@ -269,7 +271,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = WWW-Spinn3r
-DISTVNAME = WWW-Spinn3r-2.00200001
+DISTVNAME = WWW-Spinn3r-2.00200002
 
 
 # --- MakeMaker macro section:
@@ -779,18 +781,20 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="2,00200001,0,0">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="2,00200002,0,0">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <TITLE>$(DISTNAME)</TITLE>' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '    <ABSTRACT></ABSTRACT>' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '    <ABSTRACT>An interface to the Spinn3r API (http://www.spinn3r.com)</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Vipul Ved Prakash &lt;vipul@slaant.com&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="Class-Accessor" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="DateTime" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="ExtUtils-MakeMaker" VERSION="6,42,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="LWP-UserAgent" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="Test-Memory-Cycle" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="Time-HiRes" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="XML-Twig" VERSION="0,0,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <OS NAME="$(OSNAME)" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="darwin-thread-multi-2level-5.8" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="darwin-2level-thread-multi-5.1" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd
@@ -816,7 +820,7 @@ pm_to_blib : $(TO_INST_PM)
 
 
 # End.
-# Postamble by Module::Install 0.680
+# Postamble by Module::Install 0.75
 # --- Module::Install::Admin::Makefile section:
 
 realclean purge ::

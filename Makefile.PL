@@ -10,6 +10,7 @@ requires        'DateTime';
 requires        'Class::Accessor'; 
 requires        'LWP::UserAgent';
 requires        'Time::HiRes';
+requires        'Test::Memory::Cycle';
 
 license         'perl';
         
