@@ -18,7 +18,7 @@
 #     NO_META => q[1]
 #     PL_FILES => {  }
 #     PREREQ_PM => { DateTime=>q[0], LWP::UserAgent=>q[0], XML::Twig=>q[0], ExtUtils::MakeMaker=>q[6.42], Class::Accessor=>q[0], Test::Memory::Cycle=>q[0], Time::HiRes=>q[0] }
-#     VERSION => q[2.00200002]
+#     VERSION => q[3.00700001]
 #     dist => { PREOP=>q[$(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"] }
 #     test => { TESTS=>q[t/01-compile.t t/02-item-from-file.t] }
 
@@ -60,11 +60,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = WWW::Spinn3r
 NAME_SYM = WWW_Spinn3r
-VERSION = 2.00200002
+VERSION = 3.00700001
 VERSION_MACRO = VERSION
-VERSION_SYM = 2_00200002
+VERSION_SYM = 3_00700001
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 2.00200002
+XS_VERSION = 3.00700001
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -125,8 +125,8 @@ MAKEFILE_OLD = Makefile.old
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
 PERL_INC = /opt/perl.5.10.0/lib/5.10.0/darwin-2level/CORE
-PERL = /usr/bin/perl "-Iinc"
-FULLPERL = /usr/bin/perl "-Iinc"
+PERL = /opt/perl/bin/perl "-Iinc"
+FULLPERL = /opt/perl/bin/perl "-Iinc"
 ABSPERL = $(PERL)
 PERLRUN = $(PERL)
 FULLPERLRUN = $(FULLPERL)
@@ -271,7 +271,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = WWW-Spinn3r
-DISTVNAME = WWW-Spinn3r-2.00200002
+DISTVNAME = WWW-Spinn3r-3.00700001
 
 
 # --- MakeMaker macro section:
@@ -737,7 +737,7 @@ $(FIRST_MAKEFILE) : Makefile.PL $(CONFIGDEP)
 
 # --- MakeMaker makeaperl section ---
 MAP_TARGET    = perl
-FULLPERL      = /usr/bin/perl
+FULLPERL      = /opt/perl/bin/perl
 
 $(MAP_TARGET) :: static $(MAKE_APERL_FILE)
 	$(MAKE) $(USEMAKEFILE) $(MAKE_APERL_FILE) $@
@@ -781,7 +781,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="2,00200002,0,0">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="3,00700001,0,0">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <TITLE>$(DISTNAME)</TITLE>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>An interface to the Spinn3r API (http://www.spinn3r.com)</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Vipul Ved Prakash &lt;vipul@slaant.com&gt;</AUTHOR>' >> $(DISTNAME).ppd

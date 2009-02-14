@@ -9,16 +9,17 @@ use WWW::Spinn3r::item;
 use WWW::Spinn3r::link;
 use File::Spec;
 
-__PACKAGE__->mk_accessors(qw( api api_url from_file next_url retries retry_sleep last_url path this_cursor this_feed version want));
+__PACKAGE__->mk_accessors(qw( api api_url from_file future_sleep next_url retries retry_sleep last_url path this_cursor this_feed version want));
 
-$WWW::Spinn3r::VERSION = '2.00200002';
+$WWW::Spinn3r::VERSION = '3.00700001';
 
 our $DEFAULTS = { 
     api_url     => 'http://api.spinn3r.com/rss',
     debug       => 0,
     retries     => 60 * 60 * 24 * 10,
-    retry_sleep => 30,
-    version     => '2.2.0',
+    retry_sleep => 3,
+    future_sleep => 5,
+    version     => '3.0.7',
     want        => 'item',
 };
 
@@ -37,6 +38,9 @@ sub new {
     croak "Need vendor key" unless $args{params}->{vendor};
     croak "Need api name" unless $args{api};
     $self->{ua} = new LWP::UserAgent (timeout => 30);
+    unless ($args{mirror}) { 
+        $self->{ua}->default_header('Accept-Encoding' => 'gzip');
+    }
 
     return $self;
 
@@ -78,7 +82,6 @@ sub _next_feed_from_http {
 
     my $tries = 0;
     my $content = '';
-
     
     while ($tries < $self->retries and not $content) { 
     
@@ -90,10 +93,10 @@ sub _next_feed_from_http {
         if ($$self{mirror}) { 
             $content_file = $self->local_file($$self{path}, $url); 
             $self->debug("fetching (to file $content_file) $url");
-            $response = $self->{ua}->get($url, ':content_file' => $content_file, 'Accept-Encoding' => 'gzip; deflate');
+            $response = $self->{ua}->get($url, ':content_file' => $content_file);
         } else { 
             $self->debug("fetching (to memory) $url");
-            $response = $self->{ua}->get($url, 'Accept-Encoding' => 'gzip; compress; deflate');
+            $response = $self->{ua}->get($url);
         }
         
         my $howlong = $self->howlong($start);
@@ -111,7 +114,7 @@ sub _next_feed_from_http {
             if ($$self{mirror}) { 
                 $content = $content_file;
             } else { 
-                $content = $response->content;
+                $content = $response->decoded_content;
             }
         }
         
@@ -156,9 +159,14 @@ sub next_feed {
 
         my $url = $self->next_url || $self->first_url;
 
+        if ($url =~ /before=$/) { # work around bug in permalink.history
+            return;
+        }
+
         if ($url eq $self->last_url or $url =~ /after=$/) { 
-            $self->debug("it's the future! will wait for present to catch up. sleeping " . $self->retry_sleep . " seconds");
-            sleep($self->retry_sleep);
+            $self->debug("it's the future! will wait for present to catch up. sleeping " . $self->future_sleep . " seconds");
+            sleep($self->future_sleep);
+            $self->last_url(undef);
             return $self->next_feed();
         }
 
@@ -166,7 +174,9 @@ sub next_feed {
 
         $self->last_url($url);
         if ($self->want eq 'item') { 
-            $self->this_feed(WWW::Spinn3r::item->new(stringref => $xml, debug => $self->{debug}));
+            my $items = WWW::Spinn3r::item->new(stringref => $xml, debug => $self->{debug});
+            return unless $items;
+            $self->this_feed($items);
         } elsif ($self->want eq 'link') { 
             $self->this_feed(WWW::Spinn3r::link->new(stringref => $xml, debug => $self->{debug}));
         }
@@ -190,7 +200,10 @@ sub next {
     unless ($self->this_feed) { 
 
         $self->next_feed();
+        return undef unless $self->this_feed;  # fetch failed
         $self->this_cursor(0);
+        return unless $self->this_feed;
+        return unless $self->this_feed->{'api:next_request_url'};
         $self->next_url($self->this_feed->{'api:next_request_url'});
         return $self->next();
 
@@ -219,6 +232,13 @@ sub next_mirror {
         return;
     }
     my $url = $self->next_url || $self->first_url;
+
+    if ($url eq $self->last_url or $url =~ /after=$/) { 
+        $self->debug("it's the future! will wait for present to catch up. sleeping " . $self->future_sleep . " seconds");
+        sleep($self->future_sleep);
+        $self->last_url(undef);
+        return $self->next_mirror();
+    }
 
     my $filename = $self->_next_feed_from_http($url);
     $self->last_url($url);
@@ -249,7 +269,7 @@ WWW::Spinn3r - An interface to the Spinn3r API (http://www.spinn3r.com)
  };
 
  my $spnr = new WWW::Spinn3r ( 
-    api => 'permalink.getDelta', params => $API, debug => 1);
+    api => 'permalink3.getDelta', params => $API, debug => 1);
  );
 
  while(1) { 
@@ -286,8 +306,8 @@ The contructor. This function takes a hash with the following keys:
 
 =item B<api>
 
-C<permalink.getDelta> or C<feed.getDelta>, one of the two APIs provided 
-by Spinn3r. 
+C<permalink3.getDelta> or C<feed3.getDelta>, one of the two APIs
+provided by Spinn3r.
 
 =item B<params>
 

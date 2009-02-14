@@ -21,12 +21,21 @@ sub new {
     my $start = $self->start_timer;
     $self->debug("$class: parsing XML...");
 
-    if ($args{path}) { 
-        $twig->parsefile($args{path});
-    } elsif ($args{string}) { 
-        $twig->parse($args{string});
-    } elsif ($args{stringref}) { 
-        $twig->parse(${$args{stringref}});
+    eval { 
+
+        if ($args{path}) { 
+            $twig->parsefile($args{path});
+        } elsif ($args{string}) { 
+            $twig->parse($args{string});
+        } elsif ($args{stringref}) { 
+            $twig->parse(${$args{stringref}});
+        }
+
+    };
+
+    if ($@) { 
+        $self->debug("xml = \"${$args{stringref}}\"");
+        die $@;
     }
 
     my $howlong = $self->howlong($start);
@@ -42,7 +51,7 @@ sub next_request_url {
     my ($self, $twig, $root) = @_;
     my $url = $root->text;
     $self->{results}->{'api:next_request_url'} = $url;
-    $twig->finish_now;  # no more parsing!
+    $twig->finish;  # no more parsing!
     return;
 
 }

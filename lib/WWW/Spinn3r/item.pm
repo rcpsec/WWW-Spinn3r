@@ -7,8 +7,10 @@ use utf8;
 my @SCALAR_FIELDS = qw(
     title link guid pubDate description
     weblog:tier weblog:description weblog:iranking weblog:indegree weblog:publisher_type weblog:title
-    post:date_found  post:content_extract
-    dc:source dc:lang
+    post:date_found  
+    post:content_extract
+    dc:source 
+    dc:lang
     feed:url
     atom:published
 );
@@ -39,12 +41,33 @@ sub new {
     my $start = $self->start_timer;
     $self->debug("$class: parsing XML...");
 
+    eval { 
+
     if ($args{path}) { 
+        $self->debug("$class: parsing $args{path}...");
         $twig->parsefile($args{path});
     } elsif ($args{string}) { 
+        $self->debug("$class: parsing string...");
         $twig->parse($args{string});
     } elsif ($args{stringref}) { 
+        $self->debug("$class: parsing stringref...");
         $twig->parse(${$args{stringref}});
+    }
+
+    };
+
+    if ($@) { 
+        $self->debug("PARSE FAILED!!!! $@");
+        if ($args{string}) { 
+            my $head = substr $args{string}, 0, 50;
+            $self->debug("XML head that failed: $head");
+        }
+        if ($args{stringref}) { 
+            my $head = substr $$args{stringref}, 0, 50;
+            $self->debug("XML head that failed: $head");
+        }
+
+        return undef;
     }
 
     my $howlong = $self->howlong($start);

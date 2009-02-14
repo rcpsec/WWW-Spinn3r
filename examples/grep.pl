@@ -8,7 +8,7 @@ use utf8;
 binmode STDOUT, 'utf8';
 
 $limit ||= 100;
-$api   ||= 'feed.getDelta';
+$api   ||= 'feed3.getDelta';
 
 usage();
 
@@ -19,7 +19,7 @@ my $CONFIG = {
     vendor  => $vendor, 
     limit   => $limit, 
     want    => 'item',
-    after   => DateTime->now()->subtract(minutes => 20),
+    after   => DateTime->now()->subtract(minutes => 100),
     tier    => '0:10',
 };
 
